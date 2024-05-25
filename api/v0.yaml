@@ -1,0 +1,251 @@
+openapi: 3.0.0
+
+servers:
+  - description: Localhost
+    url: http://localhost:8081
+  - description: Production API
+    url: https://api.garnet-geo.org/geoapi
+
+info:
+  title: Garnet Geo API
+  version: v0
+
+paths:
+  /repository/{id}/connection_info:
+    get:
+      tags:
+        - Metadata
+      description: Get dolt DB connection info
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            $ref: '#/components/schemas/RepositoryId'
+      responses:
+        '200':
+          description: Connection info
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  dolt:
+                    type: object
+                    properties:
+                      address:
+                        type: string
+                        example: db.garnet-geo.org
+                      user:
+                        type: string
+                        example: root
+                      password:
+                        type: string
+                        example: pass
+                      database:
+                        type: string
+                        example: dolt
+                      /status:
+                        type: string
+                        example: available
+  /repository/{id}/reflog:
+    get:
+      tags:
+        - Metadata
+      description: Get dolt reflog
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            $ref: '#/components/schemas/RepositoryId'
+      responses:
+        '200':
+          description: Reflog
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        ref:
+                          $ref: '#/components/schemas/RefName'
+                        commit_timestamp:
+                          $ref: '#/components/schemas/CommitTimestamp'
+                        commit_hash:
+                          $ref: '#/components/schemas/CommitHash'
+                        commit_message:
+                          $ref: '#/components/schemas/CommitMessage'
+  /repository/{id}/commits:
+    get:
+      tags:
+        - Metadata
+      description: Get commits for specified branch. By default it is "main"
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            $ref: '#/components/schemas/RepositoryId'
+        - in: query
+          name: ref
+          required: false
+          schema:
+            $ref: '#/components/schemas/RefName'
+      responses:
+        '200':
+          description: Commits
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CommitData'
+  /repository/{id}/commits/{hash}:
+    get:
+      tags:
+        - Metadata
+      description: Get commits for specified branch. By default it is "main"
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            $ref: '#/components/schemas/RepositoryId'
+        - in: path
+          name: hash
+          required: true
+          schema:
+            $ref: '#/components/schemas/CommitHash'
+      responses:
+        '200':
+          description: Commit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommitData'
+  /repository/{id}/data/{table}:
+    get:
+      tags:
+        - Data
+      description: Get data for specified table at the specified point in history (by default from main)
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            $ref: '#/components/schemas/RepositoryId'
+        - in: path
+          name: table
+          required: true
+          schema:
+            $ref: '#/components/schemas/DataTable'
+        - in: query
+          name: ref
+          required: false
+          schema:
+            $ref: '#/components/schemas/RefName'
+      responses:
+        '200':
+          description: Data
+          content:
+            application/json:
+              schema:
+                type: object
+  /repository/{id}/diff/{table}:
+    get:
+      tags:
+        - Data
+      description: Get diff between two commits
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            $ref: '#/components/schemas/RepositoryId'
+        - in: path
+          name: table
+          required: true
+          schema:
+            $ref: '#/components/schemas/DataTable'
+        - in: query
+          name: from
+          required: true
+          schema:
+            $ref: '#/components/schemas/CommitHash'
+        - in: query
+          name: to
+          required: true
+          schema:
+            $ref: '#/components/schemas/CommitHash'
+      responses:
+        '200':
+          description: Diff
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        from:
+                          type: object
+                        to:
+                          type: object
+                        diff_type:
+                          type: string
+                          example: added
+
+
+components:
+  schemas:
+    RepositoryId:
+      type: string
+      example: d5a1874b-ae4d-4b30-991f-0bcdfa78b4e1
+    RefName:
+      type: string
+      example: ref/heads/main
+      description: The name of the ref (branch or tag)
+    DataTable:
+      type: string
+      example: roadways
+    CommitTimestamp:
+      type: integer
+      example: 1716635773000
+      description: The timestamp of the commit (in milliseconds)
+    CommitHash:
+      type: string
+      example: tqvmhrvf85co57hmh8mh849ho0v6d651
+    CommitMessage:
+      type: string
+      example: Initialize data repository
+    CommitAuthorName:
+      type: string
+      example: Example Name
+    CommitAuthorEmail:
+      type: string
+      example: email@example.com
+    CommitData:
+      type: object
+      properties:
+        commit_hash:
+          $ref: '#/components/schemas/CommitHash'
+        commit_author_name:
+          $ref: '#/components/schemas/CommitAuthorName'
+        commit_author_email:
+          $ref: '#/components/schemas/CommitAuthorEmail'
+        commit_timestamp:
+          $ref: '#/components/schemas/CommitTimestamp'
+        commit_message:
+          $ref: '#/components/schemas/CommitMessage'
+
