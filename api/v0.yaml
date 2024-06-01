@@ -198,13 +198,14 @@ paths:
                     items:
                       type: object
                       properties:
-                        from:
-                          type: object
-                        to:
-                          type: object
-                        diff_type:
-                          type: string
-                          example: added
+                        added:
+                          type: array
+                          items:
+                            type: object
+                        removed:
+                          type: array
+                          items:
+                            type: object
 
 
 components:
