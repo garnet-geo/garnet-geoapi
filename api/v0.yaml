@@ -45,7 +45,7 @@ paths:
                       database:
                         type: string
                         example: dolt
-                      /status:
+                      status:
                         type: string
                         example: available
   /repository/{id}/reflog:
